@@ -1,4 +1,3 @@
-# README.zh-CN
 
 # grid-path-planning-algorithms
 
@@ -28,7 +27,7 @@ Python implementation of grid-based pathfinding algorithms (Dijkstra).
 
 **Gird map**
 <div align="center">
-<img src="./map.png" alt="30×30栅格地图：黑色=障碍，白色=可通行" width="550"/>
+<img src="./map.png" alt="30×30栅格地图：黑色=障碍，白色=可通行" width="400"/>
 </div>
 
 **Dijkstra Result**
@@ -44,4 +43,9 @@ Python implementation of grid-based pathfinding algorithms (Dijkstra).
 **JPS Result**
 <div align="center">
 <img src="./save_png/JPS.png" alt="JPS Result Plt" />
+</div>
+
+**RRT Result**
+<div align="center">
+<img src="./save_png/RRT.png" alt="RRT Result Plt" />
 </div>
