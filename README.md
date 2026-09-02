@@ -40,3 +40,8 @@ Python implementation of grid-based pathfinding algorithms (Dijkstra).
 <div align="center">
 <img src="./save_png/A_star.png" alt="A* Result Plt" />
 </div>
+
+**JPS Result**
+<div align="center">
+<img src="./save_png/JPS.png" alt="JPS Result Plt" />
+</div>
