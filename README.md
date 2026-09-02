@@ -27,7 +27,10 @@ Python implementation of grid-based pathfinding algorithms (Dijkstra).
 - Matplotlib dynamic visualization: the algorithm yields search states step by step via a generator for drawing, and returns the final path through `return`. The animation receives the iterator via `FuncAnimation`'s `frames` parameter; when the generator reaches the path it raises `StopIteration`, which is caught by a `try/except` block to render the complete path on the final frame.
 
 grid map
-<img src="./map.png" alt="30×30栅格地图：黑色=障碍，白色=可通行" />
+<img src="./map.png" alt="30×30栅格地图：黑色=障碍，白色=可通行" width="450"/>
 
 Dijkstra Result
 <img src="./save_png/Dijkstra.png" alt="Dijkstra Result Plt" />
+
+A_star Result
+<img src="./save_png/A_star.png" alt="A* Result Plt" />
