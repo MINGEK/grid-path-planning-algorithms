@@ -1,7 +1,7 @@
 
 # grid-path-planning-algorithms
 
-使用 Python 实现的栅格地图路径规划算法（Dijkstra）。
+使用 Python 实现的栅格地图路径规划算法（Dijkstra、A*、JPS、RRT）。
 
 ## 特点
 
@@ -15,7 +15,7 @@
 
 # grid-path-planning-algorithms
 
-Python implementation of grid-based pathfinding algorithms (Dijkstra).
+Python implementation of grid-based pathfinding algorithms (Dijkstra、A*、JPS、RRT).
 
 ## Features
 
