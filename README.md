@@ -50,7 +50,7 @@ grid-path-planning-algorithms/
 │   ├── map.png
 │   ├── Dijkstra.png
 │   ├── A_star.png
-│   ├—─ Bidirectional_a_star.png
+│   ├── Bidirectional_a_star.png
 │   ├── JPS.png
 │   ├── RRT.png
 │   ├── RRT_star.png
