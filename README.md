@@ -13,10 +13,13 @@
 - 基于 Matplotlib 的动态可视化：算法以生成器（Generator）逐次 yield 搜索状态用于绘图，最终路径通过 `return` 返回；动画通过 `FuncAnimation` 的 `frames` 参数接收迭代器，并在生成器到达路径时抛出 `StopIteration` 异常，由 `try/except` 机制捕获后在最终帧绘制完整路径。
 
 ---
+<details>
+<summary>English</summary>
 
 # grid-path-planning-algorithms
 
-Python implementation of grid-based pathfinding algorithms (Dijkstra、A*、JPS、RRT).
+Python implementation of grid-based pathfinding algorithms 
+（Dijkstra、A*、Bidirectional-A*、JPS、RRT、RRT*、RRT-connect）。
 
 ## Features
 
@@ -26,7 +29,9 @@ Python implementation of grid-based pathfinding algorithms (Dijkstra、A*、JPS�
 - Code includes type annotations and detailed comments documenting the design rationale.
 - Matplotlib dynamic visualization: the algorithm yields search states step by step via a generator for drawing, and returns the final path through `return`. The animation receives the iterator via `FuncAnimation`'s `frames` parameter; when the generator reaches the path it raises `StopIteration`, which is caught by a `try/except` block to render the complete path on the final frame.
 
-**Gird map**
+</details>
+
+**Grid map**
 <div align="center">
 <img src="./save_png/map.png" alt="30×30栅格地图：黑色=障碍，白色=可通行" width="400"/>
 </div>
