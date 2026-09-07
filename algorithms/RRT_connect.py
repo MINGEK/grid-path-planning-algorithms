@@ -2,9 +2,20 @@
 RRT-connect算法
 步长为 2 ，换算后直线方向 移动 最大为 2，斜线方向 移动 最大为 1
 """
-import grid_map_data as data
+import sys
+from pathlib import Path
 
-import plt_dynamic as dynamic
+# 当前脚本文件
+FILE = Path(__file__).resolve()
+
+# 往上两层，拿到 code_python 根目录
+PROJECT_ROOT = FILE.parent.parent
+sys.path.append(str(PROJECT_ROOT))
+
+import utils.grid_map_data as data
+
+import utils.plt_dynamic as dynamic
+
 import math
 import numpy as np
 from typing import List, Tuple, Optional, Set

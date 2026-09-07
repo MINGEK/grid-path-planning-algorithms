@@ -1,45 +1,42 @@
-"""A*算法"""
-import grid_map_data as data
+"""Dijkstra算法"""
+import sys
+from pathlib import Path
 
-import plt_dynamic as dynamic
+# 当前脚本文件
+FILE = Path(__file__).resolve()
+
+# 往上两层，拿到 code_python 根目录
+PROJECT_ROOT = FILE.parent.parent
+sys.path.append(str(PROJECT_ROOT))
+
+import utils.grid_map_data as data
+
+import utils.plt_dynamic as dynamic
+
 import heapq
-import math
 import numpy as np
-from typing import List, Tuple, Optional, Set
-
+from typing import List, Tuple, Optional, Set, Dict
 
 class GridNode:
     """
     栅格节点类：存储每个地图格子的坐标与路径搜索所需的代价信息
     Attributes:
-        x, y: 节点在地图中的坐标索引
+        coord: 节点在地图中的坐标索引
         g_cost: 从起点到当前节点的实际代价（累加步长）
-        h_cost: 从当前节点到终点的启发式估计代价（欧几里得距离）
         parent: 当前节点在搜索树中的父节点，用于最终回溯路径
     """
 
     def __init__(self, node: Tuple[int, int]):
         self.coord = node  # 坐标对应numpy
         self.g_cost: float = 0.0  # 实际代价
-        self.h_cost: float = 0.0  # 启发式估计代价
         self.parent: Optional['GridNode'] = None
-
-    @property
-    def f_cost(self) -> float:
-        """
-        总评估代价 f = g + h
-        f_cost越小，说明该节点越有可能位于最优路径上
-        """
-        return self.g_cost + self.h_cost
 
     def __lt__(self, other: 'GridNode') -> bool:
         """
         定义节点间的小于比较，用于heapq优先队列排序
         当f_cost相同时，比较h_cost以保证搜索的稳定性
         """
-        if self.f_cost == other.f_cost:
-            return self.h_cost < other.h_cost
-        return self.f_cost < other.f_cost
+        return self.g_cost < other.g_cost
 
     def __eq__(self, other: object) -> bool:
         """基于坐标判断节点是否相同"""
@@ -52,7 +49,9 @@ class GridNode:
         return hash(self.coord)
 
 
-class A_star:
+class Dijkstra:
+    target: tuple[int, int]
+
     def __init__(self, robot_map: np.ndarray, source: Tuple[int, int], target: Tuple[int, int]):
         """导入 栅格地图、源节点、终节点"""
         self.grid = robot_map  # 栅格地图 numpy数组
@@ -60,28 +59,17 @@ class A_star:
         self.source = source  # 保存起点
         self.target = target  # 保存终点
 
-    def heuristic(self, neighbor_coord: Tuple[int, int]) -> float:
-        """启发式距离函数 欧式距离"""
-        return math.hypot(neighbor_coord[0] - self.target[0], neighbor_coord[1] - self.target[1])
-
     def is_valid_node(self, node: Tuple[int, int]) -> bool:
         row, col = node
         return 0 <= row < self.rows and 0 <= col < self.cols and self.grid[row, col] == 0
 
-    def get_path(self, end_node):
-        path: List[Tuple[int, int]] = []
-        cur: Optional[GridNode] = end_node
-        while cur:
-            path.append(cur.coord)
-            cur = cur.parent
-        return path[::-1]
     def get_valid_neighbors(self, current_coord: Tuple[int, int]) -> List[Tuple[Tuple[int, int], float]]:
         """返回当前点current点的有效邻接点（未排除已探索点）"""
         current_row, current_col = current_coord
         neighbors = []
         for d_row, d_col, step_cost in data.d_8:  # 从map导入d_8
-            neighbor_row = current_row + d_row  # row
-            neighbor_col = current_col + d_col  # col
+            neighbor_row = current_row + d_row
+            neighbor_col = current_col + d_col
             neighbor_coord = (neighbor_row, neighbor_col)
             # 检查边界和障碍物
             if self.is_valid_node(neighbor_coord):
@@ -93,23 +81,36 @@ class A_star:
                         neighbors.append((neighbor_coord, step_cost))
         return neighbors
 
+    def get_path(self, end_node):
+        path: List[Tuple[int, int]] = []
+        cur: Optional[GridNode] = end_node
+        while cur:
+            path.append(cur.coord)
+            cur = cur.parent
+        return path[::-1]
+
     def search(self):
-        # 检查起点终点是否有效
-        if self.grid[self.source] == 1:
-            print("错误：起点在障碍物上！或出界")
-            return None
-        if self.grid[self.target] == 1:
-            print("错误：起点在障碍物上！或出界")
-            return None
+        source_node = GridNode(self.source)  # 源节点
+        target_node = GridNode(self.target)  # 终节点
 
-        source_node: GridNode = GridNode(self.source)  # 源节点
-
-        open_list: List[GridNode] = [source_node]
+        # 检查起点终点是否在障碍物上
+        if self.grid[source_node.coord] == 1:
+            print("错误：起点在障碍物上！")
+            return None
+        if self.grid[target_node.coord] == 1:
+            print("错误：终点在障碍物上！")
+            return None
+        # 后面建立三个空的存储，我来说明。
+        # 一个是用于推出最优路径的队列 列表
+        # 一个已经探索过的节点
+        # 一个用于记录路径的节点。它真实记录的是起到到各节点的路径，并非唯一。
+        open_list = []
+        heapq.heappush(open_list, source_node)  # 使用source_node
         # 记录已扩展的节点，避免重复处理
-        explored_set: Set[Tuple[int, int]] = set()
+        explored_set = set()
         # 用于快速查找OpenList中是否已存在某节点，并支持更新更优路径
         # 将起点加入 存放字典的形式
-        open_dict = {source_node.coord: source_node}  # 使用source_node
+        open_dict: Dict[Tuple[int, int], GridNode] = {source_node.coord: source_node}  # 使用source_node
 
         while open_list:
             # 从OpenList中取出f_cost最小的节点作为当前节点
@@ -124,15 +125,12 @@ class A_star:
             explored_set.add(current_node.coord)
 
             yield explored_set
-
             # 到达目标点：通过parent指针回溯，重构完整路径
             if current_node.coord == self.target:
                 path = self.get_path(current_node)
-                print(path)
-                return path, explored_set  # 反转列表，得到从起点到终点的顺序
+                return path[::-1], explored_set  # 反转列表，得到从起点到终点的顺序
 
             for neighbor_coord, step_cost in self.get_valid_neighbors(current_node.coord):
-
                 # 若邻域节点已在ClosedList中，无需重复处理
                 if neighbor_coord in explored_set:
                     continue
@@ -143,11 +141,13 @@ class A_star:
                 # 检查该邻域节点是否已在OpenList中
                 existing = open_dict.get(neighbor_coord)
 
+                # 这个判断体现了两种情况，一种是现在这个邻接点，并不存在。所以他将把现在邻节点添加进去
+                #                  第二种是如果这个邻接点存在，说明existing已经获得这个点的对象，
+                #                  当然包括它的实际代价，则要对比下经过当前节点的邻接节点的实际代价，如果小于则更新实际代价、父节点
                 if existing is None or tentative_g < existing.g_cost:
                     # 发现更优路径：更新g_cost、parent指针，并重新加入OpenList
                     neighbor_node = GridNode(neighbor_coord)
                     neighbor_node.g_cost = tentative_g
-                    neighbor_node.h_cost = self.heuristic(neighbor_coord)
                     neighbor_node.parent = current_node
                     heapq.heappush(open_list, neighbor_node)
                     open_dict[neighbor_coord] = neighbor_node
@@ -156,7 +156,7 @@ class A_star:
 
 
 if __name__ == "__main__":
-    Astar_ = A_star(robot_map=data.np_map, source=data.source, target=data.target)
+    Dijkstra_ = Dijkstra(robot_map=data.np_map, source=data.source, target=data.target)
 
     viz = dynamic.MapVisualizer()
-    viz.plot_dynamic(Astar_.search, title="A* Path Planning Dynamic Result")
+    viz.plot_dynamic(Dijkstra_.search, title="Dijkstra Path Planning Dynamic Result")

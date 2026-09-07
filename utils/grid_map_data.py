@@ -1,8 +1,19 @@
+import sys
+from pathlib import Path
+
+# 当前脚本文件
+FILE = Path(__file__).resolve()
+
+# 往上两层，拿到 code_python 根目录
+PROJECT_ROOT = FILE.parent.parent
+sys.path.append(str(PROJECT_ROOT))
+
 import pandas as pd                                                           # 数据处理库，用于读取 Excel 文件
 import math
+map_file = PROJECT_ROOT / "map.xlsx"
 # 我将栅格图以二元值的形式存入到了excel中，在后面的修改我我可以直观的修改图的内容
 # 栅格地图是30*30 不跳过行，读取30行数据（不包括首行，首行作为标题行），读取第2-31列，
-df_map = pd.read_excel('map.xlsx', usecols=list(range(1, 31)), skiprows=0, nrows=30, header=0)  # 从 Excel 读取栅格地图：usecols 指定读取第2~31列（索引1~30），skiprows=0 不跳过行，nrows=30 读取30行，header=0 将第一行作为列名
+df_map = pd.read_excel(map_file, usecols=list(range(1, 31)), skiprows=0, nrows=30, header=0)  # 从 Excel 读取栅格地图：usecols 指定读取第2~31列（索引1~30），skiprows=0 不跳过行，nrows=30 读取30行，header=0 将第一行作为列名
 # 转化为np数组
 np_map = df_map.to_numpy()                                                    # 将 DataFrame 转为 numpy 二维数组，0=自由空间，1=障碍物
 # 创建八邻域搜素

@@ -1,10 +1,21 @@
 """RRT* 算法"""
+import sys
+from pathlib import Path
+
+# 当前脚本文件
+FILE = Path(__file__).resolve()
+
+# 往上两层，拿到 code_python 根目录
+PROJECT_ROOT = FILE.parent.parent
+sys.path.append(str(PROJECT_ROOT))
+
+import utils.grid_map_data as data
+
+import utils.plt_dynamic as dynamic
 
 import math
 import numpy as np
 from typing import List, Tuple, Optional
-import grid_map_data as data
-import plt_dynamic as dynamic
 
 class GridNode:
     def __init__(self, coord: Tuple[int, int]):

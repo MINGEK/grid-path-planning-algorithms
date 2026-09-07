@@ -1,7 +1,17 @@
 """Bidirectional‑A*算法"""
-import grid_map_data as data
+import sys
+from pathlib import Path
 
-import plt_dynamic as dynamic
+# 当前脚本文件
+FILE = Path(__file__).resolve()
+
+# 往上两层，拿到 code_python 根目录
+PROJECT_ROOT = FILE.parent.parent
+sys.path.append(str(PROJECT_ROOT))
+
+import utils.grid_map_data as data
+import utils.plt_dynamic as dynamic
+
 import heapq
 import math
 import numpy as np
@@ -112,8 +122,8 @@ class Bidirectional_A_star:
         bw_open_list: List[GridNode] = [target_node]
         bw_explored_set: Set[Tuple[int, int]] = set()
         bw_open_dict = {target_node.coord: target_node}
-        #all
-        all_explored_set : Set[Tuple[int, int]] = set()
+        # all
+        all_explored_set: Set[Tuple[int, int]] = set()
         # 初始化交点
         meet_node = None
 
@@ -169,7 +179,6 @@ class Bidirectional_A_star:
                 meet_node = bw_current_node
                 break
 
-
             for neighbor_coord, step_cost in self.get_valid_neighbors(bw_current_node.coord):
 
                 # 若邻域节点已在ClosedList中，无需重复处理
@@ -199,15 +208,16 @@ class Bidirectional_A_star:
             return None  # 没有通路
 
         # 正向路径
-        path_fw = self.get_path( fw_open_dict[meet_node.coord] )
+        path_fw = self.get_path(fw_open_dict[meet_node.coord])
 
         # 反向路径
-        path_bw = self.get_path( bw_open_dict[meet_node.coord] )
+        path_bw = self.get_path(bw_open_dict[meet_node.coord])
         path_bw.reverse()
         # 拼接，去掉重复的相遇点
-        all_path = path_fw +  path_bw[1:]
+        all_path = path_fw + path_bw[1:]
 
         return all_path, all_explored_set
+
 
 if __name__ == "__main__":
     Bidirectional_A_star_ = Bidirectional_A_star(robot_map=data.np_map, source=data.source, target=data.target)

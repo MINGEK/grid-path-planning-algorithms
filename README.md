@@ -31,6 +31,36 @@ Python implementation of grid-based pathfinding algorithms
 
 </details>
 
+## 项目结构
+```
+grid-path-planning-algorithms/
+├── algorithms/
+│   ├── Dijkstra.py
+│   ├── A_star.py
+│   ├── Bidirectional_A_star.py
+│   ├── JPS.py
+│   ├── RRT.py
+│   ├── RRT_star.py
+│   └── RRT_connect.py
+├── utils/
+│   ├── grid_map_data.py
+│   ├── plt_dynamic.py
+│   └── plt_static.py
+├── save_png/
+│   ├── map.png
+│   ├── Dijkstra.png
+│   ├── A_star.png
+│   ├—─ Bidirectional_a_star.png
+│   ├── JPS.png
+│   ├── RRT.png
+│   ├── RRT_star.png
+│   └── RRT_connect.png
+├── map.xlsx
+├── requirements.txt
+├── .gitignore
+├── LICENSE
+└── README.md
+```
 **Grid map**
 <div align="center">
 <img src="./save_png/map.png" alt="30×30栅格地图：黑色=障碍，白色=可通行" width="400"/>

@@ -2,11 +2,22 @@
 地图可视化模块
 动态路径规划
 """
-import grid_map_data as data
+import sys
+from pathlib import Path
+
+# 当前脚本文件
+FILE = Path(__file__).resolve()
+
+# 往上两层，拿到 code_python 根目录
+PROJECT_ROOT = FILE.parent.parent
+sys.path.append(str(PROJECT_ROOT))
+
+import utils.grid_map_data as data
 import numpy as np
 import matplotlib.pyplot as plt  #
 from matplotlib.animation import FuncAnimation
 from typing import Optional, List, Tuple, Set, Callable  # 导入类型注解
+
 
 class MapVisualizer:
     def __init__(self, grid_map: np.ndarray = data.np_map,
