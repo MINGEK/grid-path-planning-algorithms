@@ -1,7 +1,8 @@
 
 # grid-path-planning-algorithms
 
-使用 Python 实现的栅格地图路径规划算法（Dijkstra、A*、JPS、RRT）。
+使用 Python 实现的栅格地图路径规划算法
+（Dijkstra、A*、Bidirectional-A*、JPS、RRT、RRT*、RRT-connect）。
 
 ## 特点
 
@@ -27,17 +28,22 @@ Python implementation of grid-based pathfinding algorithms (Dijkstra、A*、JPS�
 
 **Gird map**
 <div align="center">
-<img src="./map.png" alt="30×30栅格地图：黑色=障碍，白色=可通行" width="400"/>
+<img src="./save_png/map.png" alt="30×30栅格地图：黑色=障碍，白色=可通行" width="400"/>
 </div>
 
-**Dijkstra Result**
+**Dijkstra  Result**
 <div align="center">
 <img src="./save_png/Dijkstra.png" alt="Dijkstra Result Plt" />
 </div>
 
-**A_star Result**
+**A\*  Result**
 <div align="center">
 <img src="./save_png/A_star.png" alt="A* Result Plt" />
+</div>
+
+**Bidirectional-A\* Result**
+<div align="center">
+<img src="./save_png/Bidirectional_A_star.png" alt="Bidirectional A* Result Plt" />
 </div>
 
 **JPS Result**
@@ -48,4 +54,14 @@ Python implementation of grid-based pathfinding algorithms (Dijkstra、A*、JPS�
 **RRT Result**
 <div align="center">
 <img src="./save_png/RRT.png" alt="RRT Result Plt" />
+</div>
+
+**RRT\* Result**
+<div align="center">
+<img src="./save_png/RRT_star.png" alt="RRT* Result Plt" />
+</div>
+
+**RRT-connect Result**
+<div align="center">
+<img src="./save_png/RRT_connect.png" alt="RRT_connect Result Plt" />
 </div>
