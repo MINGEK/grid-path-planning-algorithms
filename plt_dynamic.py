@@ -1,23 +1,19 @@
 """
 地图可视化模块
-提供静态地图绘制和动态路径规划展示功能
+动态路径规划
 """
-import grid_map_data as data
-import numpy as np  # 导入numpy库，用于数值计算
-import matplotlib.pyplot as plt  # 导入matplotlib绘图库
-from matplotlib.animation import FuncAnimation  # 导入动画模块
+import grid_map as data
+import numpy as np
+import matplotlib.pyplot as plt  #
+from matplotlib.animation import FuncAnimation
 from typing import Optional, List, Tuple, Set, Callable  # 导入类型注解
 
-
 class MapVisualizer:
-    """地图可视化器，提供静态和动态绘图功能"""
-
     def __init__(self, grid_map: np.ndarray = data.np_map,
                  source: Tuple[int, int] = data.source,
                  target: Tuple[int, int] = data.target) -> None:
         """
         初始化可视化器
-
         Args:
             grid_map: 栅格地图二维数组，0=自由空间，1=障碍物
             source: 起点坐标 (row, col)
@@ -35,7 +31,8 @@ class MapVisualizer:
         """配置matplotlib全局参数"""
         config = {  # 配置字典
             "font.family": 'serif',  # 字体族
-            "font.serif": ['Times New Roman', 'SimSun'],
+            "font.serif": ['Times New Roman'],
+            "font.sans-serif": ["SimSun"],  # 遇到中文，fallback使用宋体
             "font.size": 12,  # 字体大小
             "axes.unicode_minus": False,  # 解决负号显示问题
             'figure.dpi': 150,  # 显示分辨率
@@ -49,17 +46,16 @@ class MapVisualizer:
         return fig, ax  # 返回图形和坐标轴
 
     def _draw_base_map(self, ax: plt.Axes) -> None:
-        """绘制基础地图层"""
         # 绘制栅格地图
-        ax.imshow(self.grid_map,  # 绘制栅格地图数据
-                  cmap='Greys',  # 灰度色系 0=白色(自由), 1=黑色(障碍)
-                  origin='upper',  # 设定坐标系原点位置为左上角
+        ax.imshow(self.grid_map,         # 绘制栅格地图数据
+                  cmap='Greys',          # 灰度色系 0=白色(自由), 1=黑色(障碍)
+                  origin='upper',        # 设定坐标系原点位置为左上角
                   # 默认图形边界从-0.5开始，
                   # extent=(-0.5, width-0.5, height-0.5, -0.5),
-                  alpha=0.6,  # 透明度 0.6                        # 地图透明度设为0.6，使叠加的路径和标记更清晰
-                  vmin=0, vmax=1, # 颜色映射最小值：0 映射为纯白,1 映射为纯黑
+                  alpha=0.6,             # 透明度 0.6
+                  vmin=0, vmax=1,        # 颜色映射最小值：0 映射为纯白,1 映射为纯黑
                   interpolation='none',  # 像素硬边界
-                  aspect='equal')  # x, y 单位长度等长，方格
+                  aspect='equal')        # x, y 单位长度等长，方格
 
         # 设置主刻度在格子中心
         ax.set_xticks(np.arange(0, self.width, 5))
@@ -68,25 +64,25 @@ class MapVisualizer:
         ax.set_yticklabels([str(i) for i in range(0, self.height, 5)])
 
         # 设置次刻度在格子边界
-        ax.set_xticks(np.arange(-0.5, self.width, 1), minor=True)  # x轴次刻度
-        ax.set_yticks(np.arange(-0.5, self.height, 1), minor=True)  # y轴次刻度
+        ax.set_xticks(np.arange(-0.5, self.width, 1), minor=True)
+        ax.set_yticks(np.arange(-0.5, self.height, 1), minor=True)
 
-        # 隐藏次刻度线
-        ax.tick_params(axis='both', which='minor', length=0)  # 次刻度线长度0
+        # 隐藏次刻度线 次刻度线长度0
+        ax.tick_params(axis='both', which='minor', length=0)
 
         # 绘制网格线
-        ax.grid(True, which='minor', alpha=0.5, linestyle='-', linewidth=1.5)  # 网格线
+        ax.grid(True, which='minor', alpha=0.5, linestyle='-', linewidth=1.5)
 
         # 设置坐标轴范围
-        ax.set_xlim(-1, self.width)  # x轴范围
-        ax.set_ylim(self.height, -1)  # y轴范围
+        ax.set_xlim(-1, self.width)
+        ax.set_ylim(self.height, -1)
 
-        # 设置刻度标签样式
-        ax.tick_params(axis='both', labelsize=9, pad=4)  # 标签字号和距离
+        # 设置刻度标签样式  标签字号和距离
+        ax.tick_params(axis='both', labelsize=9, pad=4)
 
         # 设置轴标签
-        ax.set_xlabel('col', fontsize=12, )  # x轴标签
-        ax.set_ylabel('row', fontsize=12)  # y轴标签
+        ax.set_xlabel('col', fontsize=12)
+        ax.set_ylabel('row', fontsize=12)
 
         # 绘制起点
         ax.scatter(self.source[1], self.source[0], c='blue', s=80, marker='o', zorder=11, label='Start')
@@ -94,47 +90,10 @@ class MapVisualizer:
         # 绘制终点
         ax.scatter(self.target[1], self.target[0], c='magenta', s=80, marker='s', zorder=11, label='Goal')
 
-    def plot_static(self,
-                    path: Optional[List[Tuple[int, int]]] = None,
-                    explored: Optional[Set[Tuple[int, int]]] = None,
-                    title: str = "Static Map") -> None:
-        """
-        绘制静态地图
-
-        Args:
-            path: 路径节点列表
-            explored: 已探索节点集合
-            title: 图表标题
-        """
-        fig, ax = self._setup_figure()  # 创建图形
-        self._draw_base_map(ax)  # 绘制基础地图
-
-        # 绘制已探索区域
-        if explored:
-            explored_arr = np.array([[col, row] for row, col in explored])  # 转换坐标
-            ax.scatter(explored_arr[:, 0], explored_arr[:, 1],  # 散点图
-                       c='lightblue', s=10, alpha=0.5,  # 样式
-                       label='Explored')  # 图例
-
-        # 绘制路径
-        if path:
-            path_arr = np.array([[col, row] for row, col in path])
-            ax.plot(path_arr[:, 0], path_arr[:, 1],  # 路径线
-                    'r-', linewidth=2, label='Path')  # 红色实线
-            ax.scatter(path_arr[:, 0], path_arr[:, 1],  # 路径节点
-                       c='lime', s=30, zorder=5,  # 青绿色
-                       edgecolors='darkgreen')  # 深绿边框
-
-        ax.set_title(title, fontsize=14)  # 设置标题
-        plt.tight_layout()  # 调整布局
-        plt.show()  # 显示图形
-
     def plot_dynamic(self,
                      path_plan_func: Callable = None,
                      title: str = "Dynamic Map") -> None:
-        """
-        绘制动态地图 实时更新
-        """
+        """绘制动态地图 实时更新"""
         if path_plan_func:
             gen = path_plan_func()
         else:
@@ -196,6 +155,5 @@ def test():
     return [(2,3),(3,4),(4,3),(4,4)],{(2,3)}
 
 if __name__ == '__main__':
-    viz = MapVisualizer()                    # 先创建实例
-    #viz.plot_static()         # 再调用方法
+    viz = MapVisualizer()
     viz.plot_dynamic(test)

@@ -1,12 +1,14 @@
 """Dijkstra算法"""
-from jinja2.nodes import Dict
+from networkx.linalg.laplacianmatrix import directed_combinatorial_laplacian_matrix
+from optype import do_contains
+from prompt_toolkit.key_binding.bindings.completion import display_completions_like_readline
+from pygments.console import dark_colors
 
 import grid_map_data as data
-import plt_static as static
 import plt_dynamic as dynamic
 import heapq
 import numpy as np
-from typing import List, Tuple, Optional, Set
+from typing import List, Tuple, Optional, Set, Dict
 
 class GridNode:
     """
@@ -16,9 +18,10 @@ class GridNode:
         g_cost: 从起点到当前节点的实际代价（累加步长）
         parent: 当前节点在搜索树中的父节点，用于最终回溯路径
     """
-    def __init__(self, node: Tuple[int,int]):
-        self.coord = node              # 坐标对应numpy
-        self.g_cost: float = 0.0       # 实际代价
+
+    def __init__(self, node: Tuple[int, int]):
+        self.coord = node  # 坐标对应numpy
+        self.g_cost: float = 0.0  # 实际代价
         self.parent: Optional['GridNode'] = None
 
     def __lt__(self, other: 'GridNode') -> bool:
@@ -38,36 +41,48 @@ class GridNode:
         """基于坐标生成哈希值，支持将节点存入集合（Set）"""
         return hash(self.coord)
 
+
 class Dijkstra:
     target: tuple[int, int]
-    def __init__(self, robot_map: np.ndarray, source:Tuple[int,int], target:Tuple[int,int]):
-        """导入 栅格地图、源节点、终节点, 初始化 最短路径 已探索节点"""
+
+    def __init__(self, robot_map: np.ndarray, source: Tuple[int, int], target: Tuple[int, int]):
+        """导入 栅格地图、源节点、终节点"""
         self.grid = robot_map  # 栅格地图 numpy数组
         self.rows, self.cols = np.shape(robot_map)  # 栅格地图维度
         self.source = source  # 保存起点
         self.target = target  # 保存终点
 
-    def get_valid_neighbors(self, current_coord: Tuple[int, int]) -> List[Tuple[Tuple[int,int], float]]:
+    def is_valid_node(self, node: Tuple[int, int]) -> bool:
+        row, col = node
+        return 0 <= row < self.rows and 0 <= col < self.cols and self.grid[row, col] == 0
+
+    def get_valid_neighbors(self, current_coord: Tuple[int, int]) -> List[Tuple[Tuple[int, int], float]]:
         """返回当前点current点的有效邻接点（未排除已探索点）"""
-        current_x, current_y = current_coord
+        current_row, current_col = current_coord
         neighbors = []
-        for dx, dy, step_cost in data.d_8:  # 从map导入d_8
-            neighbor_x = current_x + dx
-            neighbor_y = current_y + dy
-            neighbor_coord = (neighbor_x, neighbor_y)
+        for d_row, d_col, step_cost in data.d_8:  # 从map导入d_8
+            neighbor_row = current_row + d_row
+            neighbor_col = current_col + d_col
+            neighbor_coord = (neighbor_row, neighbor_col)
             # 检查边界和障碍物
-            if 0 <= neighbor_x < self.rows and 0 <= neighbor_y < self.cols:
-                # 先保证邻节点落在可通行区域上
-                if self.grid[neighbor_coord] == 0:  # 0表示可通过
+            if self.is_valid_node(neighbor_coord):
                     # 对角线移动需要检查两个正交方向
                     if step_cost > 1:
-                        if self.grid[current_x][neighbor_y] == 0 and self.grid[neighbor_x][current_y] == 0:
+                        if self.grid[current_row][neighbor_col] == 0 and self.grid[neighbor_row][current_col] == 0:
                             neighbors.append((neighbor_coord, step_cost))
                     else:
                         neighbors.append((neighbor_coord, step_cost))
         return neighbors
 
-    def plan(self):
+    def get_path(self, end_node):
+        path: List[Tuple[int, int]] = []
+        cur: Optional[GridNode] = end_node
+        while cur:
+            path.append(cur.coord)
+            cur = cur.parent
+        return path[::-1]
+
+    def search(self):
         source_node = GridNode(self.source)  # 源节点
         target_node = GridNode(self.target)  # 终节点
 
@@ -78,7 +93,7 @@ class Dijkstra:
         if self.grid[target_node.coord] == 1:
             print("错误：终点在障碍物上！")
             return None
-        #后面建立三个空的存储，我来说明。
+        # 后面建立三个空的存储，我来说明。
         # 一个是用于推出最优路径的队列 列表
         # 一个已经探索过的节点
         # 一个用于记录路径的节点。它真实记录的是起到到各节点的路径，并非唯一。
@@ -105,18 +120,11 @@ class Dijkstra:
             yield explored_set
             # 到达目标点：通过parent指针回溯，重构完整路径
             if current_node.coord == self.target:
-                path = []
-                node = current_node
-                while node is not None:
-                    path.append(node.coord)
-                    node = node.parent
+                path = self.get_path(current_node)
                 return path[::-1], explored_set  # 反转列表，得到从起点到终点的顺序
 
             for neighbor_coord, step_cost in self.get_valid_neighbors(current_node.coord):
-                # 取出当前点所有有效邻接点
-                neighbor_node = GridNode(neighbor_coord)
                 # 若邻域节点已在ClosedList中，无需重复处理
-
                 if neighbor_coord in explored_set:
                     continue
 
@@ -126,30 +134,22 @@ class Dijkstra:
                 # 检查该邻域节点是否已在OpenList中
                 existing = open_dict.get(neighbor_coord)
 
-                #这个判断体现了两种情况，一种是现在这个邻接点，并不存在。所以他将把现在邻节点添加进去
+                # 这个判断体现了两种情况，一种是现在这个邻接点，并不存在。所以他将把现在邻节点添加进去
                 #                  第二种是如果这个邻接点存在，说明existing已经获得这个点的对象，
                 #                  当然包括它的实际代价，则要对比下经过当前节点的邻接节点的实际代价，如果小于则更新实际代价、父节点
                 if existing is None or tentative_g < existing.g_cost:
                     # 发现更优路径：更新g_cost、parent指针，并重新加入OpenList
+                    neighbor_node = GridNode(neighbor_coord)
                     neighbor_node.g_cost = tentative_g
                     neighbor_node.parent = current_node
                     heapq.heappush(open_list, neighbor_node)
                     open_dict[neighbor_coord] = neighbor_node
         # OpenList为空且未到达终点，说明无可行路径
-        return None
+        return None, explored_set
+
 
 if __name__ == "__main__":
     Dijkstra_ = Dijkstra(robot_map=data.np_map, source=data.source, target=data.target)
-    flag_static, flag_dynamic = 0 , 1
-    if flag_static:
-        if path:
-            print(f"找到路径！路径长度: {len(path)}")
-            print(f"路径: {path}")
-            # 可视化
-            static.map_visualization( path=path, explored = explored,  title="A* Path Planning Result")
-        else:
-            print("未找到路径！")
-    elif flag_dynamic:
-        viz = dynamic.MapVisualizer()
 
-        viz.plot_dynamic(Dijkstra_.plan, title="Dijkstra Path Planning Dynamic Result")
+    viz = dynamic.MapVisualizer()
+    viz.plot_dynamic(Dijkstra_.search, title="Dijkstra Path Planning Dynamic Result")

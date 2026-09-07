@@ -1,5 +1,5 @@
 """
-RRT算法
+RRT-connect算法
 步长为 2 ，换算后直线方向 移动 最大为 2，斜线方向 移动 最大为 1
 """
 import grid_map_data as data
@@ -17,11 +17,11 @@ class GridNode:
         self.parent = None
 
 
-class RRT:
+class RRT_connect:
     def __init__(self, robot_map: np.ndarray,
                  source: Tuple[int, int],
                  target: Tuple[int, int],
-                 random_seed: Optional[int] = 42):  # 正向
+                 random_seed: Optional[int] = 42):
         self.grid = robot_map
         self.rows, self.cols = np.shape(robot_map)  # 栅格地图维度
         self.source = source
@@ -41,7 +41,7 @@ class RRT:
             # 随机在栅格范围内采一个整数坐标点，可以保证在栅格范围内
             row = self.rng.integers(0, self.rows)
             col = self.rng.integers(0, self.cols)
-            rnd = (row, col)
+            rnd = (int(row), int(col))
         return rnd
 
     # 有效点检测
@@ -51,7 +51,7 @@ class RRT:
 
     # 传入对象 node_list 为对象。rnd为元组, 输出对象
     # 在节点列表里找到离随机采样点最近的节点
-    def nearest_node(self, tree_nodes: List[GridNode], rnd: Tuple[int, int]) -> Optional[GridNode]:
+    def nearest_node(self, tree_nodes: List[GridNode], rnd: Tuple[int, int]) -> GridNode:
         # 默认第一个节点为最近点
         nearest = tree_nodes[0]
         # 初始化最小距离
@@ -116,8 +116,44 @@ class RRT:
             cur = cur.parent
         return path[::-1]
 
+    def extend(self, tree:List[GridNode], rnd:Tuple[int, int])-> tuple[None, bool] | tuple[GridNode, bool]:
+        # 拓展步，已保证返回节点有效
+        near_node = self.nearest_node(tree, rnd)
+        if rnd == near_node.coord:
+            return None, False
+
+        new_coord = self.steer(near_node.coord, rnd)
+
+        if not self.is_valid_node(new_coord) or not self.is_valid_line(near_node.coord, new_coord):
+            return None, False
+
+        # 此时已拓展城市，实例化新节点，并为其添加父节点
+        new_node = GridNode(new_coord)
+        tree.append(new_node)
+        new_node.parent = near_node
+        return new_node, True
+
+    def connect(self, tree:List[GridNode], reach_coord: Tuple[int, int]
+                )->tuple[None, bool] | tuple[GridNode, bool]:
+        # 如果当前树的距离 目标点，的最近节点 相等，则直接返回链接成功
+        near_node = self.nearest_node(tree, reach_coord)
+        if near_node.coord == reach_coord:
+            return near_node, True
+        while True:
+            # 疯狂拓展 朝目标方向拓展，直到链接 或 节点失效
+            status, flag = self.extend(tree, reach_coord)
+            # 拓展失败，直接退出
+            if not flag:
+                break
+            # 如果到达目标点，直接返回状态
+            if status.coord == reach_coord:
+                return status, True
+            # 在没有失败和 到达目标点的情况下，一直拓展
+            tree.append(status)
+        return status, False
+
     # 栅格地图版本 RRT 主算法函数
-    def plan(self, max_iter=5000):
+    def search(self, max_iter=5000):
         # 检查起点终点是否有效
         if self.grid[self.source] == 1:
             print("错误：起点在障碍物上！或出界")
@@ -128,8 +164,13 @@ class RRT:
 
         source_node = GridNode(self.source)
         target_node = GridNode(self.target)
-        tree_nodes: List[GridNode] = [source_node]
 
+        s_tree: List[GridNode] = [source_node] # 源点树
+        t_tree: List[GridNode] = [target_node] # 终点树
+
+        # 初始化
+        a_tree: List[GridNode] = s_tree # 源点树
+        b_tree: List[GridNode] = t_tree # 终点树
         # 将当前节点加入ClosedList
         explored_set: Set[Tuple[int, int]] = set()
 
@@ -140,53 +181,36 @@ class RRT:
             # 生成随机点
             rnd = self.generate_rnd()
 
-            # 找到树上离随机点最近的节点
-            near_node = self.nearest_node(tree_nodes, rnd)
-
-            # 如果新生成的随机点与 随机树中距离最近的随机点，坐标相同，则进行下一次循环
-            if rnd == near_node.coord:
+            a_new_node, flag = self.extend(a_tree, rnd)
+            # 拓展失败则，则跳过
+            if not flag:
                 continue
 
-            # 朝着随机点走一步，生成候选新节点
-            new_coord = self.steer(near_node.coord, rnd)
+            status, flag = self.connect(b_tree, a_new_node.coord)
 
-            # 如果新节点不是有效通行节点，则则进行下一次循环
-            if not self.is_valid_node(new_coord):
-                continue
-
-            # 判断是否此点已有，有的话就不更新
-            if new_coord in explored_set:
-                continue
-
-            # 碰撞检测：没有撞障碍物才允许加入树
-            if self.is_valid_line(near_node.coord, new_coord) is False:
-                continue
-
-            new_node = GridNode(new_coord)
-
-            # 设置父节点，建立连接关系
-            new_node.parent = near_node
-            # 新节点加入树列表
-            tree_nodes.append(new_node)
-
-            # 将当前节点加入ClosedList
-            explored_set.add(new_node.coord)
-
+            explored_set = set([tn.coord for tn in a_tree] + [tn.coord for tn in b_tree])
             yield explored_set
+            # 如果找到链接点，则查询完整路径
+            if flag:
+                # 来判断哪个树是起点树
+                if a_tree[0].coord == self.source:
+                    s_tree = a_tree
+                    t_tree = b_tree
+                else:
+                    t_tree = a_tree
+                    s_tree = b_tree
 
-            # 判断是否已经走到目标点附近 以2 为范围 然后以路径判断，邻近目标点距离是否合理
-            if self.distance(new_node.coord, target_node.coord) <= 2:
-                if self.is_valid_line(new_node.coord, target_node.coord):
-                    # 回溯得到路径，返回路径和所有树节点
-                    target_node.parent = new_node
-                    return self.get_path(target_node), tree_nodes
+                path  =  self.get_path(a_tree[-1]) + self.get_path(b_tree[-1])[::-1][1:]
+                return path, None
+
+            a_tree, b_tree = b_tree, a_tree
         # 迭代用完也没找到路径
-        return None, tree_nodes
+        return None
 
 
 # ---------------- 程序入口，测试运行 ----------------
 if __name__ == "__main__":
-    RRT_ = RRT(robot_map=data.np_map, source=data.source, target=data.target)
+    RRT_connect_ = RRT_connect(robot_map=data.np_map, source=data.source, target=data.target)
 
     viz = dynamic.MapVisualizer()
-    viz.plot_dynamic(RRT_.plan, title="RRT Path Planning Dynamic Result")
+    viz.plot_dynamic(RRT_connect_.search, title="RRT-connect Path Planning Dynamic Result")
