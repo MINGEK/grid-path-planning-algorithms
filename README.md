@@ -43,9 +43,8 @@ grid-path-planning-algorithms/
 │   ├── RRT_star.py
 │   └── RRT_connect.py
 ├── utils/
-│   ├── grid_map_data.py
-│   ├── plt_dynamic.py
-│   └── plt_static.py
+│   ├── grid_map_data.py 
+│   └── plt_dynamic.py
 ├── save_png/
 │   ├── 动态绘图示例.gif
 │   ├── map.png
