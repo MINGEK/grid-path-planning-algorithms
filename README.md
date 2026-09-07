@@ -47,6 +47,7 @@ grid-path-planning-algorithms/
 │   ├── plt_dynamic.py
 │   └── plt_static.py
 ├── save_png/
+│   ├── 动态绘图示例.gif
 │   ├── map.png
 │   ├── Dijkstra.png
 │   ├── A_star.png
@@ -64,6 +65,11 @@ grid-path-planning-algorithms/
 **Grid map**
 <div align="center">
 <img src="./save_png/map.png" alt="30×30栅格地图：黑色=障碍，白色=可通行" width="400"/>
+</div>
+
+**动态绘图示例**
+<div align="center">
+<img src="./save_png/动态绘图示例.gif" alt="动态绘图示例" />
 </div>
 
 **Dijkstra  Result**
