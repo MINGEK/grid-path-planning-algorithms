@@ -2,7 +2,7 @@
 地图可视化模块
 动态路径规划
 """
-import grid_map as data
+import grid_map_data as data
 import numpy as np
 import matplotlib.pyplot as plt  #
 from matplotlib.animation import FuncAnimation
