@@ -18,7 +18,6 @@ import math
 import numpy as np
 from typing import List, Tuple, Optional, Set
 
-
 class GridNode:
     """
     栅格节点类：存储每个地图格子的坐标与路径搜索所需的代价信息

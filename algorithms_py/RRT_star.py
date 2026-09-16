@@ -128,7 +128,7 @@ class RrtStar:
                 return False
         return True
 
-    def rewire(self, tree_nodes: List[GridNode], new_node: GridNode) -> bool:
+    def _choose_parent_and_rewire(self, tree_nodes: List[GridNode], new_node: GridNode) -> bool:
         new_coord = new_node.coord
         n = len(tree_nodes)
         # ---- 0) 邻居半径 r：n<=1 时 log(1)=0，必须兜底 ----
@@ -144,7 +144,7 @@ class RrtStar:
         ]
 
         if not neighbors: return False
-
+        # 选择 新节点的 前导节点
         best_parent: Optional[GridNode] = None
         best_cost = math.inf
         for tn in neighbors:
@@ -163,7 +163,7 @@ class RrtStar:
         new_node.parent = best_parent
         new_node.g_cost = best_cost
 
-        # ---- 3) Rewire：回头看看邻居能不能"从 new_node 绕一下"更便宜 ----
+        # 重布线
         for tn in neighbors:
             if tn is best_parent:
                 continue                 # 爹不需要再检查
@@ -188,8 +188,9 @@ class RrtStar:
         source_node = GridNode(self.source)
         source_node.g_cost = 0.0
         tree_nodes: List[GridNode] = [source_node]
-
-        target_node = GridNode(self.target)   # 原 bug：target_node 根本没定义！
+        # 初始化目标节点
+        target_node = GridNode(self.target)
+        # 初始化目标节点连接 bool
         target_connected = False
 
         for _ in range(max_iter):
@@ -207,16 +208,14 @@ class RrtStar:
             if not self.is_valid_node(new_coord):
                 continue
 
-            # 先拿 near_node 当候选父，后面再用 rewire 优化 起点连线都撞了：直接丢弃
+            # 先拿 near_node 当候选父
             if not self.is_valid_line(near_node.coord, new_coord):
                 continue
             new_node = GridNode(new_coord)
             # ---- RRT* 重头戏：选最优父 + 重连邻居 ----
-            rewired = self.rewire(tree_nodes, new_node)
+            flag = self._choose_parent_and_rewire(tree_nodes, new_node)
 
-            if not rewired:
-
-                new_node = GridNode(new_coord)
+            if not flag:
                 # 邻居圆为空 / 全撞了 → 走 RRT 兜底策略连最近邻 near_node
                 new_node.parent = near_node
                 new_node.g_cost = near_node.g_cost + self.distance(near_node.coord, new_node.coord)
