@@ -13,8 +13,6 @@
 - 基于 Matplotlib 的动态可视化：算法以生成器（Generator）逐次 yield 搜索状态用于绘图，最终路径通过`return`返回：动画通过`FuncAnimation`的`frames`参数接收迭代器，并在生成器到达路径时抛出`StopIteration`异常，由`try/except`机制捕获后在最终帧绘制完整路径。
 ---
 ### 算法说明
-### 算法说明
-
 - **Dijkstra**：\
   与常规算法一致，增加斜向移动时两侧正交栅格均可通行的约束。
 
@@ -57,8 +55,6 @@ Python implementation of grid-based pathfinding algorithms
 ## 项目结构
 ```
 grid-path-planning-algorithms/
-├── algorithms_cpp/
-│   ├── A_star.cpp
 ├── algorithms_py/
 │   ├── Dijkstra.py
 │   ├── A_star.py
@@ -75,7 +71,7 @@ grid-path-planning-algorithms/
 │   ├── map.png
 │   ├── Dijkstra.png
 │   ├── A_star.png
-│   ├── Bidirectional_a_star.png
+│   ├── Bidirectional_A_star.png
 │   ├── JPS.png
 │   ├── RRT.png
 │   ├── RRT_star.png
