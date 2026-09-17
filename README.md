@@ -12,6 +12,15 @@
 - 代码包含类型注解和详细注释，记录设计思路与逻辑推导过程。
 - 基于 Matplotlib 的动态可视化：算法以生成器（Generator）逐次 yield 搜索状态用于绘图，最终路径通过`return`返回：动画通过`FuncAnimation`的`frames`参数接收迭代器，并在生成器到达路径时抛出`StopIteration`异常，由`try/except`机制捕获后在最终帧绘制完整路径。
 ---
+## 运行方式
+
+```bash
+pip install -r requirements.txt
+python algorithms_py/A_star.py
+```
+替换 `A_star.py` 为其他算法文件即可运行不同算法（如 `Dijkstra.py`、`RRT.py` 等）。
+
+---
 ### 算法说明
 - **Dijkstra**：\
   与常规算法一致，增加斜向移动时两侧正交栅格均可通行的约束。
