@@ -1,4 +1,4 @@
-# 编译产物目录
+# C++ 编译产物目录
 build/
 
 # 可执行文件
@@ -7,6 +7,10 @@ build/
 *.obj
 *.a
 *.dll
+
+# Python 缓存文件
+__pycache__/
+*.pyc
 
 # IDE 配置文件
 .vscode/
