@@ -1,9 +1,19 @@
-__pycache__/
-*.pyc
-*.pyo
-.idea/
+# 编译产物目录
+build/
+
+# 可执行文件
+*.exe
+*.o
+*.obj
+*.a
+*.dll
+
+# IDE 配置文件
 .vscode/
+.idea/
+*.user
+
+# 系统文件
+Thumbs.db
+Desktop.ini
 .DS_Store
-venv/
-.venv/
-*.egg-info/

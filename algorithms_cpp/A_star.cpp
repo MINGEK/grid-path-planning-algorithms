@@ -61,11 +61,11 @@ int key(int row, int col, int cols) {
 
 // A* 算法
 // 返回路径坐标列表，如果找不到返回空
-vector<pair<int, int>> search(const vector<vector<int>>& grid,
-                              int source_row, int source_col,
-                              int target_row, int target_col) {
-    int rows = grid.size();
-    int cols = grid[0].size();
+vector<pair<int, int>> search(const vector<vector<int>>& grid, //栅格地图
+                              int source_row, int source_col,  //起点坐标
+                              int target_row, int target_col) {//终点坐标
+    int rows = grid.size();         // 行数
+    int cols = grid[0].size();      // 列数
 
     // Open 表：优先队列，f 最小的先出
     // greater<Node> 让它变成"小顶堆"（默认是大顶堆）
@@ -74,8 +74,8 @@ vector<pair<int, int>> search(const vector<vector<int>>& grid,
     // 存每个格子的 g 值（起点到这个格子的代价）
     unordered_map<int, double> gScore;
 
-    // 存每个格子的父节点（用来回溯路径）
-    unordered_map<int, int> parent;
+    // 存每个格子的父节点【节点的key值】（用来回溯路径）
+    unordered_map<int, int> came_from;
 
     // 起点入队
     Node source;
@@ -105,7 +105,7 @@ vector<pair<int, int>> search(const vector<vector<int>>& grid,
 
                 int k = key(current_row, current_col, cols);
 
-                int parentK = parent[k];
+                int parentK = came_from[k];
 
                 current_row = parentK / cols;
 
@@ -155,7 +155,7 @@ vector<pair<int, int>> search(const vector<vector<int>>& grid,
             // 如果这个格子还没探索过，或者新的 g 更小
             if (gScore.find(nk) == gScore.end() || tentativeG < gScore[nk]) {
                 gScore[nk] = tentativeG;
-                parent[nk] = key(current.row, current.col, cols);
+                came_from[nk] = key(current.row, current.col, cols);
 
                 Node neighbor;
                 neighbor.row = n_row;

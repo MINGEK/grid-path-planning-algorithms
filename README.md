@@ -50,7 +50,9 @@ Python implementation of grid-based pathfinding algorithms
 ## 项目结构
 ```
 grid-path-planning-algorithms/
-├── algorithms/
+├── algorithms_cpp/
+│   ├── A_star.cpp
+├── algorithms_py/
 │   ├── Dijkstra.py
 │   ├── A_star.py
 │   ├── Bidirectional_A_star.py
